@@ -1,0 +1,278 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f8f9fa;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: background-color 0.3s ease;
+}
+
+body.dark-mode {
+    background: #1a1a1a;
+}
+
+/* Dark Mode Toggle */
+.dark-mode-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.dark-mode-toggle:hover {
+    background: #34495e;
+    transform: scale(1.1);
+}
+
+.dark-mode .dark-mode-toggle {
+    background: #667eea;
+}
+
+.dark-mode .dark-mode-toggle:hover {
+    background: #5a6fd8;
+}
+
+/* Layout */
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    height: 100vh;
+}
+
+.pdf-container {
+    flex: 1;
+    height: 100%;
+    position: relative;
+    background: white;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+}
+
+.dark-mode .pdf-container {
+    background: #2d2d2d;
+}
+
+.pdf-canvas-container {
+    max-width: 100%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+/* PDF Rendering */
+.pdf-page {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    max-width: 100%;
+    height: auto;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+.dark-mode .pdf-page {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+/* Text Layer for Selection and Links */
+.textLayer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    opacity: 0.1;
+    line-height: 1.0;
+    pointer-events: auto;
+}
+
+.textLayer span {
+    color: transparent;
+    position: absolute;
+    white-space: pre;
+    cursor: text;
+    transform-origin: 0% 0%;
+    pointer-events: auto;
+}
+
+/* Text Selection */
+.textLayer span:not([data-clickable]) {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+/* Clickable Links */
+.textLayer span[data-font-name*="link"],
+.textLayer span[title*="http"],
+.textLayer span[title*="www"],
+.textLayer span[title*="@"] {
+    cursor: pointer !important;
+    color: transparent;
+    background: rgba(0, 100, 255, 0.1);
+    border-radius: 2px;
+}
+
+.textLayer span[data-font-name*="link"]:hover,
+.textLayer span[title*="http"]:hover,
+.textLayer span[title*="www"]:hover,
+.textLayer span[title*="@"]:hover {
+    background: rgba(0, 100, 255, 0.2);
+}
+
+/* Fallback Display */
+.pdf-fallback {
+    display: none;
+    padding: 40px;
+    text-align: center;
+    background: #f8f9fa;
+    color: #666;
+}
+
+/* Buttons */
+.buttons {
+    padding: 15px 20px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    background: white;
+    border-top: 1px solid #eee;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.dark-mode .buttons {
+    background: #2d2d2d;
+    border-top: 1px solid #404040;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: #2c3e50;
+    color: white;
+}
+
+.btn-secondary {
+    background: #667eea;
+    color: white;
+}
+
+.dark-mode .btn-primary {
+    background: #34495e;
+}
+
+.dark-mode .btn-secondary {
+    background: #5a6fd8;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.icon {
+    width: 18px;
+    height: 18px;
+}
+
+/* Footer */
+.footer {
+    background: #f8f9fa;
+    padding: 10px;
+    text-align: center;
+    color: #666;
+    border-top: 1px solid #eee;
+    font-size: 12px;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.dark-mode .footer {
+    background: #1a1a1a;
+    color: #999;
+    border-top: 1px solid #404040;
+}
+
+/* Loading Spinner */
+.spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin-right: 12px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .content {
+        height: 100vh;
+    }
+    
+    .buttons {
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+    }
+    
+    .btn {
+        width: 200px;
+        justify-content: center;
+    }
+
+    .dark-mode-toggle {
+        top: 15px;
+        right: 15px;
+        width: 45px;
+        height: 45px;
+    }
+}
