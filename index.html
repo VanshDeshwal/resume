@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vansh Deshwal - Resume</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -58,6 +59,25 @@
             height: 100%;
             position: relative;
             background: white;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        .pdf-canvas-container {
+            max-width: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .pdf-page {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            max-width: 100%;
+            height: auto;
         }
 
         .pdf-embed {
@@ -174,16 +194,14 @@
     
     <div class="content">
         <div class="pdf-container">
-            <div class="loading" id="loading" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; color: #666; background: white;">
+            <div class="loading" id="loading" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; color: #666; background: white; z-index: 10;">
                 <div class="spinner"></div>
                 <span>Loading resume...</span>
             </div>
-            <div id="pdfViewer" style="display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
-                <object class="pdf-embed" data="VanshDeshwal_Resume.pdf" type="application/pdf" style="width: 100%; height: 100%;">
-                    <iframe src="VanshDeshwal_Resume.pdf" style="width: 100%; height: 100%; border: none;"></iframe>
-                </object>
+            <div class="pdf-canvas-container" id="pdfContainer" style="display: none;">
+                <!-- PDF pages will be rendered here -->
             </div>
-            <div class="pdf-fallback" id="pdfFallback" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+            <div class="pdf-fallback" id="pdfFallback" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none;">
                 <div style="text-align: center; padding: 40px; height: 100%; display: flex; flex-direction: column; justify-content: center;">
                     <svg style="width: 48px; height: 48px; margin-bottom: 20px; color: #667eea;" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
@@ -227,37 +245,89 @@
     </div>
 
     <script>
-        // Simple PDF loading with fallback
+        // Set up PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
         const loading = document.getElementById('loading');
-        const pdfViewer = document.getElementById('pdfViewer');
+        const pdfContainer = document.getElementById('pdfContainer');
         const fallback = document.getElementById('pdfFallback');
+
+        function showLoading() {
+            loading.style.display = 'flex';
+            pdfContainer.style.display = 'none';
+            fallback.style.display = 'none';
+        }
 
         function showPDF() {
             loading.style.display = 'none';
-            pdfViewer.style.display = 'block';
+            pdfContainer.style.display = 'block';
+            fallback.style.display = 'none';
         }
 
         function showFallback() {
             loading.style.display = 'none';
+            pdfContainer.style.display = 'none';
             fallback.style.display = 'block';
         }
 
-        // Try to show PDF, fallback if needed
-        document.addEventListener('DOMContentLoaded', function() {
-            // Show PDF after short delay
-            setTimeout(showPDF, 800);
-            
-            // Fallback after reasonable wait time
-            setTimeout(() => {
-                if (loading.style.display !== 'none') {
-                    showFallback();
+        // Load and render PDF
+        async function loadPDF() {
+            try {
+                const pdf = await pdfjsLib.getDocument('VanshDeshwal_Resume.pdf').promise;
+                
+                // Clear container
+                pdfContainer.innerHTML = '';
+                
+                // Render each page
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    
+                    // Calculate scale to fit container width
+                    const viewport = page.getViewport({ scale: 1 });
+                    const containerWidth = Math.min(window.innerWidth - 40, 800); // Max width with padding
+                    const scale = containerWidth / viewport.width;
+                    const scaledViewport = page.getViewport({ scale });
+                    
+                    // Create canvas
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = scaledViewport.height;
+                    canvas.width = scaledViewport.width;
+                    canvas.className = 'pdf-page';
+                    
+                    // Render page
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: scaledViewport
+                    };
+                    
+                    await page.render(renderContext).promise;
+                    pdfContainer.appendChild(canvas);
                 }
-            }, 3000);
+                
+                showPDF();
+            } catch (error) {
+                console.error('Error loading PDF:', error);
+                showFallback();
+            }
+        }
 
-            // Handle object load events
-            const objectElement = document.querySelector('object');
-            if (objectElement) {
-                objectElement.addEventListener('error', showFallback);
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            showLoading();
+            
+            // Try to load PDF with PDF.js
+            loadPDF().catch(() => {
+                // If PDF.js fails, show fallback after a delay
+                setTimeout(showFallback, 2000);
+            });
+        });
+
+        // Handle window resize to maintain aspect ratio
+        window.addEventListener('resize', function() {
+            if (pdfContainer.style.display === 'block') {
+                // Reload PDF with new scale on resize
+                setTimeout(loadPDF, 300);
             }
         });
     </script>
