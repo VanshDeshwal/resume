@@ -109,7 +109,7 @@ body.dark-mode {
     right: 0;
     bottom: 0;
     overflow: hidden;
-    opacity: 0.1;
+    opacity: 1;
     line-height: 1.0;
     pointer-events: auto;
 }
@@ -121,6 +121,18 @@ body.dark-mode {
     cursor: text;
     transform-origin: 0% 0%;
     pointer-events: auto;
+    background: transparent;
+}
+
+/* Hide text content but allow selection */
+.textLayer span::selection {
+    background: rgba(0, 123, 255, 0.3);
+    color: transparent;
+}
+
+.textLayer span::-moz-selection {
+    background: rgba(0, 123, 255, 0.3);
+    color: transparent;
 }
 
 /* Text Selection */
@@ -147,6 +159,17 @@ body.dark-mode {
 .textLayer span[title*="www"]:hover,
 .textLayer span[title*="@"]:hover {
     background: rgba(0, 100, 255, 0.2);
+}
+
+/* Dark Mode Text Selection */
+.dark-mode .textLayer span::selection {
+    background: rgba(100, 149, 237, 0.4);
+    color: transparent;
+}
+
+.dark-mode .textLayer span::-moz-selection {
+    background: rgba(100, 149, 237, 0.4);
+    color: transparent;
 }
 
 /* Fallback Display */
