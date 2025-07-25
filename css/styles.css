@@ -101,39 +101,6 @@ body.dark-mode {
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
-/* Text Layer for Selection and Links */
-.textLayer {
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    overflow: hidden;
-    opacity: 1;
-    line-height: 1.0;
-    pointer-events: auto;
-}
-
-.textLayer span {
-    position: absolute;
-    white-space: pre;
-    cursor: text;
-    transform-origin: 0% 0%;
-    pointer-events: auto;
-    color: transparent !important;
-    background: transparent;
-    text-shadow: none;
-    -webkit-text-fill-color: transparent;
-}
-
-/* Text Selection Disabled */
-.textLayer span {
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-}
-
 /* Fallback Display */
 .pdf-fallback {
     position: absolute;

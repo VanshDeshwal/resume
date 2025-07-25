@@ -72,9 +72,8 @@ class PDFManager {
         const canvas = await this.renderCanvas(page, baseScale, devicePixelRatio);
         pageContainer.appendChild(canvas);
         
-        // Add text layer for selection and links
-        const textLayer = await this.renderTextLayer(page, baseScale, canvas);
-        pageContainer.appendChild(textLayer);
+        // Disable all interactions - no text layer or annotations
+        pageContainer.style.pointerEvents = 'none';
         
         this.pdfContainer.appendChild(pageContainer);
     }
@@ -105,47 +104,6 @@ class PDFManager {
         
         await page.render(renderContext).promise;
         return canvas;
-    }
-
-    async renderTextLayer(page, baseScale, canvas) {
-        // Add text layer for clickable links and text selection
-        const textLayerDiv = document.createElement('div');
-        textLayerDiv.className = 'textLayer';
-        textLayerDiv.style.width = canvas.style.width;
-        textLayerDiv.style.height = canvas.style.height;
-        
-        // Get text content and render text layer
-        const textContent = await page.getTextContent();
-        const textLayerViewport = page.getViewport({ scale: baseScale });
-        
-        // Create text layer task
-        const textLayerTask = pdfjsLib.renderTextLayer({
-            textContent: textContent,
-            container: textLayerDiv,
-            viewport: textLayerViewport,
-            textDivs: []
-        });
-        
-        await textLayerTask.promise;
-        
-        // Set up links and text selection
-        this.setupTextInteractions(textLayerDiv);
-        
-        return textLayerDiv;
-    }
-
-    setupTextInteractions(textLayerDiv) {
-        const textSpans = textLayerDiv.querySelectorAll('span');
-        textSpans.forEach(span => {
-            this.disableTextSelection(span);
-        });
-    }
-
-    disableTextSelection(span) {
-        // Disable text selection for all spans
-        span.style.userSelect = 'none';
-        span.style.webkitUserSelect = 'none';
-        span.style.pointerEvents = 'none';
     }
 
     handleResize() {
