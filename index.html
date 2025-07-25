@@ -4,7 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vansh Deshwal - Resume</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
+    <script src="https://unpkg.com/pdfjs-dist@4.0.379/build/pdf.min.js" onerror="loadPDFJSFallback()"></script>
+    <script>
+        // Fallback PDF.js loading
+        function loadPDFJSFallback() {
+            console.log('Primary PDF.js failed, trying fallback...');
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+            script.onload = function() {
+                console.log('Fallback PDF.js loaded');
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            };
+            script.onerror = function() {
+                console.error('Both PDF.js sources failed to load');
+            };
+            document.head.appendChild(script);
+        }
+    </script>
+    <script>
+        // Ensure PDF.js is loaded before proceeding
+        window.addEventListener('load', function() {
+            // Set up PDF.js worker after the library loads
+            if (typeof pdfjsLib !== 'undefined') {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.0.379/build/pdf.worker.min.js';
+                console.log('PDF.js loaded successfully');
+            } else {
+                console.error('PDF.js failed to load');
+            }
+        });
+    </script>
     <style>
         * {
             margin: 0;
@@ -346,8 +374,8 @@
 
     <script>
         // Set up PDF.js worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js';
-
+        // Moved to window load event above
+        
         const loading = document.getElementById('loading');
         const pdfContainer = document.getElementById('pdfContainer');
         const fallback = document.getElementById('pdfFallback');
@@ -657,9 +685,16 @@
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded');
+        function initializeApp() {
+            console.log('Initializing app');
             console.log('PDF.js available:', typeof pdfjsLib !== 'undefined');
+            
+            if (typeof pdfjsLib === 'undefined') {
+                console.error('PDF.js not loaded properly');
+                setTimeout(showFallback, 1000);
+                return;
+            }
+            
             console.log('PDF.js GlobalWorkerOptions:', pdfjsLib.GlobalWorkerOptions);
             
             initializeDarkMode();
@@ -667,19 +702,37 @@
             
             showLoading();
             
-            // Check if PDF.js is loaded properly
-            if (typeof pdfjsLib === 'undefined') {
-                console.error('PDF.js not loaded properly');
-                setTimeout(showFallback, 1000);
-                return;
-            }
-            
             // Try to load PDF with PDF.js
             loadPDF().catch((error) => {
                 console.error('loadPDF failed:', error);
                 // If PDF.js fails, show fallback after a delay
                 setTimeout(showFallback, 2000);
             });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded');
+            
+            // Check if PDF.js is already loaded
+            if (typeof pdfjsLib !== 'undefined') {
+                initializeApp();
+            } else {
+                // Wait for PDF.js to load
+                console.log('Waiting for PDF.js to load...');
+                let checkCount = 0;
+                const checkInterval = setInterval(() => {
+                    checkCount++;
+                    if (typeof pdfjsLib !== 'undefined') {
+                        console.log('PDF.js loaded after', checkCount * 100, 'ms');
+                        clearInterval(checkInterval);
+                        initializeApp();
+                    } else if (checkCount > 50) { // 5 seconds timeout
+                        console.error('PDF.js failed to load after 5 seconds');
+                        clearInterval(checkInterval);
+                        setTimeout(showFallback, 1000);
+                    }
+                }, 100);
+            }
         });
 
         // Debounced resize handler to prevent constant refreshing
