@@ -184,10 +184,25 @@
                     <div class="spinner"></div>
                     <span>Loading resume...</span>
                 </div>
-                <embed class="pdf-embed" src="VanshDeshwal_Resume.pdf" type="application/pdf" id="pdfEmbed" style="display: none;">
+                <div id="pdfViewer" style="display: none; width: 100%; height: 100%;">
+                    <object class="pdf-embed" data="VanshDeshwal_Resume.pdf" type="application/pdf" style="width: 100%; height: 100%;">
+                        <iframe src="VanshDeshwal_Resume.pdf" style="width: 100%; height: 100%; border: none;"></iframe>
+                    </object>
+                </div>
                 <div class="pdf-fallback" id="pdfFallback">
-                    <h3>Unable to display PDF in browser</h3>
-                    <p>Your browser doesn't support PDF viewing. Please download the resume using the button below.</p>
+                    <div style="text-align: center; padding: 40px;">
+                        <svg style="width: 64px; height: 64px; margin-bottom: 20px; color: #667eea;" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
+                        </svg>
+                        <h3 style="margin-bottom: 15px; color: #333;">Resume Preview</h3>
+                        <p style="margin-bottom: 25px; color: #666; line-height: 1.6;">
+                            PDF preview is not available in this browser.<br>
+                            Click the button below to download and view the complete resume.
+                        </p>
+                        <a href="VanshDeshwal_Resume.pdf" target="_blank" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; text-decoration: none; border-radius: 25px; font-weight: 600;">
+                            View Full Resume
+                        </a>
+                    </div>
                 </div>
             </div>
             
@@ -214,33 +229,81 @@
     </div>
 
     <script>
-        // Handle PDF loading
-        const pdfEmbed = document.getElementById('pdfEmbed');
+        // Handle PDF loading with multiple fallback strategies
         const loading = document.getElementById('loading');
+        const pdfViewer = document.getElementById('pdfViewer');
         const fallback = document.getElementById('pdfFallback');
 
-        // Show PDF after loading
-        pdfEmbed.onload = function() {
+        function showPDF() {
             loading.style.display = 'none';
-            pdfEmbed.style.display = 'block';
-        };
+            pdfViewer.style.display = 'block';
+        }
 
-        // Handle PDF loading errors
-        pdfEmbed.onerror = function() {
+        function showFallback() {
             loading.style.display = 'none';
             fallback.style.display = 'block';
-        };
+        }
 
-        // Fallback for browsers that don't support PDF embedding
-        setTimeout(function() {
-            if (pdfEmbed.style.display === 'none' && fallback.style.display !== 'block') {
-                loading.style.display = 'none';
-                fallback.style.display = 'block';
-            }
-        }, 3000);
+        // Function to test if PDF can be displayed
+        function testPDFSupport() {
+            // Create a test object element
+            const testObject = document.createElement('object');
+            testObject.data = 'VanshDeshwal_Resume.pdf';
+            testObject.type = 'application/pdf';
+            testObject.style.width = '1px';
+            testObject.style.height = '1px';
+            testObject.style.position = 'absolute';
+            testObject.style.top = '-9999px';
+            
+            document.body.appendChild(testObject);
+            
+            setTimeout(() => {
+                try {
+                    // If the object has content, PDF is supported
+                    if (testObject.offsetHeight > 0 || (testObject.contentDocument && testObject.contentDocument.body)) {
+                        showPDF();
+                    } else {
+                        showFallback();
+                    }
+                } catch (e) {
+                    showFallback();
+                }
+                document.body.removeChild(testObject);
+            }, 1000);
+        }
 
-        // Add smooth scrolling and animations
+        // Detect PDF support and show appropriate content
         document.addEventListener('DOMContentLoaded', function() {
+            // Check if browser likely supports PDF viewing
+            const userAgent = navigator.userAgent.toLowerCase();
+            const isChrome = userAgent.includes('chrome') && !userAgent.includes('edge');
+            const isFirefox = userAgent.includes('firefox');
+            const isSafari = userAgent.includes('safari') && !userAgent.includes('chrome');
+            const isEdge = userAgent.includes('edge');
+
+            // Most modern browsers support PDF viewing
+            if (isChrome || isFirefox || isEdge || isSafari) {
+                // Try to load PDF, with fallback after 3 seconds
+                setTimeout(() => {
+                    if (loading.style.display !== 'none') {
+                        testPDFSupport();
+                    }
+                }, 1500);
+                
+                // Fallback after 4 seconds if still loading
+                setTimeout(() => {
+                    if (loading.style.display !== 'none') {
+                        showFallback();
+                    }
+                }, 4000);
+
+                // Show PDF immediately for known good browsers
+                setTimeout(showPDF, 1000);
+            } else {
+                // For unknown browsers, show fallback
+                setTimeout(showFallback, 1000);
+            }
+
             // Animate container on load
             const container = document.querySelector('.container');
             container.style.opacity = '0';
@@ -251,6 +314,15 @@
                 container.style.opacity = '1';
                 container.style.transform = 'translateY(0)';
             }, 100);
+        });
+
+        // Handle object load events
+        document.addEventListener('DOMContentLoaded', function() {
+            const objectElement = document.querySelector('object');
+            if (objectElement) {
+                objectElement.addEventListener('load', showPDF);
+                objectElement.addEventListener('error', showFallback);
+            }
         });
     </script>
 </body>
