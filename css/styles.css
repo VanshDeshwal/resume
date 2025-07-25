@@ -115,24 +115,36 @@ body.dark-mode {
 }
 
 .textLayer span {
-    color: transparent;
     position: absolute;
     white-space: pre;
     cursor: text;
     transform-origin: 0% 0%;
     pointer-events: auto;
+    color: transparent !important;
     background: transparent;
+    text-shadow: none;
+    -webkit-text-fill-color: transparent;
 }
 
 /* Hide text content but allow selection */
 .textLayer span::selection {
     background: rgba(0, 123, 255, 0.3);
     color: transparent;
+    text-shadow: none;
 }
 
 .textLayer span::-moz-selection {
     background: rgba(0, 123, 255, 0.3);
     color: transparent;
+    text-shadow: none;
+}
+
+/* Ensure text is completely invisible */
+.textLayer span {
+    color: transparent !important;
+    background: transparent;
+    text-shadow: none;
+    -webkit-text-fill-color: transparent;
 }
 
 /* Text Selection */
@@ -165,11 +177,13 @@ body.dark-mode {
 .dark-mode .textLayer span::selection {
     background: rgba(100, 149, 237, 0.4);
     color: transparent;
+    text-shadow: none;
 }
 
 .dark-mode .textLayer span::-moz-selection {
     background: rgba(100, 149, 237, 0.4);
     color: transparent;
+    text-shadow: none;
 }
 
 /* Fallback Display */
