@@ -105,6 +105,44 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
 
+        /* Simple text layer for clickable links */
+        .textLayer {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            opacity: 0;
+            line-height: 1.0;
+        }
+
+        .textLayer span {
+            color: transparent;
+            position: absolute;
+            white-space: pre;
+            cursor: text;
+            transform-origin: 0% 0%;
+        }
+
+        /* Make links visible and clickable */
+        .textLayer span[data-font-name*="link"],
+        .textLayer span[title*="http"],
+        .textLayer span[title*="www"],
+        .textLayer span[title*="@"] {
+            cursor: pointer !important;
+            color: transparent;
+            background: rgba(0, 100, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .textLayer span[data-font-name*="link"]:hover,
+        .textLayer span[title*="http"]:hover,
+        .textLayer span[title*="www"]:hover,
+        .textLayer span[title*="@"]:hover {
+            background: rgba(0, 100, 255, 0.2);
+        }
+
         .pdf-fallback {
             display: none;
             padding: 40px;
@@ -389,6 +427,11 @@
                 for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                     const page = await pdf.getPage(pageNum);
                     
+                    // Create page container
+                    const pageContainer = document.createElement('div');
+                    pageContainer.style.position = 'relative';
+                    pageContainer.style.display = 'inline-block';
+                    
                     // Calculate scale for better quality while maintaining layout
                     const devicePixelRatio = window.devicePixelRatio || 1;
                     const containerWidth = Math.min(window.innerWidth - 40, 800);
@@ -419,7 +462,54 @@
                     };
                     
                     await page.render(renderContext).promise;
-                    pdfContainer.appendChild(canvas);
+                    pageContainer.appendChild(canvas);
+                    
+                    // Add text layer for clickable links
+                    const textLayerDiv = document.createElement('div');
+                    textLayerDiv.className = 'textLayer';
+                    textLayerDiv.style.width = canvas.style.width;
+                    textLayerDiv.style.height = canvas.style.height;
+                    
+                    // Get text content and render text layer
+                    const textContent = await page.getTextContent();
+                    const textLayerViewport = page.getViewport({ scale: baseScale });
+                    
+                    // Create text layer task
+                    const textLayerTask = pdfjsLib.renderTextLayer({
+                        textContent: textContent,
+                        container: textLayerDiv,
+                        viewport: textLayerViewport,
+                        textDivs: []
+                    });
+                    
+                    await textLayerTask.promise;
+                    
+                    // Make links clickable
+                    const textSpans = textLayerDiv.querySelectorAll('span');
+                    textSpans.forEach(span => {
+                        const text = span.textContent;
+                        // Check if text looks like a URL or email
+                        if (text && (text.includes('http') || text.includes('www.') || text.includes('@') && text.includes('.'))) {
+                            span.style.cursor = 'pointer';
+                            span.style.background = 'rgba(0, 100, 255, 0.1)';
+                            span.title = text;
+                            
+                            span.addEventListener('click', function() {
+                                let url = text.trim();
+                                if (url.includes('@') && !url.startsWith('http')) {
+                                    // Email
+                                    url = 'mailto:' + url;
+                                } else if (!url.startsWith('http')) {
+                                    // URL without protocol
+                                    url = 'https://' + url;
+                                }
+                                window.open(url, '_blank');
+                            });
+                        }
+                    });
+                    
+                    pageContainer.appendChild(textLayerDiv);
+                    pdfContainer.appendChild(pageContainer);
                 }
                 
                 showPDF();
