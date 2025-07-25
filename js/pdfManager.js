@@ -137,44 +137,12 @@ class PDFManager {
     setupTextInteractions(textLayerDiv) {
         const textSpans = textLayerDiv.querySelectorAll('span');
         textSpans.forEach(span => {
-            const text = span.textContent;
-            // Check if text looks like a URL or email
-            if (text && (text.includes('http') || text.includes('www.') || (text.includes('@') && text.includes('.')))) {
-                this.setupClickableLink(span, text);
-            } else {
-                this.disableTextSelection(span);
-            }
-        });
-    }
-
-    setupClickableLink(span, text) {
-        span.style.cursor = 'pointer';
-        span.style.background = 'rgba(0, 100, 255, 0.1)';
-        span.title = text;
-        span.setAttribute('data-clickable', 'true');
-        
-        // Prevent text selection on links, enable clicking
-        span.style.userSelect = 'none';
-        span.style.webkitUserSelect = 'none';
-        span.style.pointerEvents = 'auto';
-        
-        span.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            let url = text.trim();
-            if (url.includes('@') && !url.startsWith('http')) {
-                // Email
-                url = 'mailto:' + url;
-            } else if (!url.startsWith('http')) {
-                // URL without protocol
-                url = 'https://' + url;
-            }
-            window.open(url, '_blank');
+            this.disableTextSelection(span);
         });
     }
 
     disableTextSelection(span) {
-        // Disable text selection for non-links
+        // Disable text selection for all spans
         span.style.userSelect = 'none';
         span.style.webkitUserSelect = 'none';
         span.style.pointerEvents = 'none';
