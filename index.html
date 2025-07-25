@@ -20,30 +20,43 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            transition: background-color 0.3s ease;
         }
 
-        .header {
-            background: white;
-            color: #333;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+        body.dark-mode {
+            background: #1a1a1a;
         }
 
-        .header h1 {
-            font-size: 2em;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #2c3e50;
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
-        .header p {
-            font-size: 1em;
-            color: #666;
-            margin: 0;
+        .dark-mode-toggle:hover {
+            background: #34495e;
+            transform: scale(1.1);
+        }
+
+        .dark-mode .dark-mode-toggle {
+            background: #667eea;
+        }
+
+        .dark-mode .dark-mode-toggle:hover {
+            background: #5a6fd8;
         }
 
         .content {
@@ -51,7 +64,7 @@
             display: flex;
             flex-direction: column;
             padding: 0;
-            height: calc(100vh - 120px);
+            height: 100vh;
         }
 
         .pdf-container {
@@ -62,6 +75,11 @@
             overflow-y: auto;
             display: flex;
             justify-content: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .dark-mode .pdf-container {
+            background: #2d2d2d;
         }
 
         .pdf-canvas-container {
@@ -78,6 +96,10 @@
             border-radius: 8px;
             max-width: 100%;
             height: auto;
+        }
+
+        .dark-mode .pdf-page {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
 
         .pdf-embed {
@@ -103,6 +125,12 @@
             background: white;
             border-top: 1px solid #eee;
             flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .dark-mode .buttons {
+            background: #2d2d2d;
+            border-top: 1px solid #404040;
         }
 
         .btn {
@@ -129,6 +157,14 @@
             color: white;
         }
 
+        .dark-mode .btn-primary {
+            background: #34495e;
+        }
+
+        .dark-mode .btn-secondary {
+            background: #5a6fd8;
+        }
+
         .btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -147,15 +183,18 @@
             border-top: 1px solid #eee;
             font-size: 12px;
             flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .dark-mode .footer {
+            background: #1a1a1a;
+            color: #999;
+            border-top: 1px solid #404040;
         }
 
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 1.8em;
-            }
-            
             .content {
-                height: calc(100vh - 140px);
+                height: 100vh;
             }
             
             .buttons {
@@ -167,6 +206,13 @@
             .btn {
                 width: 200px;
                 justify-content: center;
+            }
+
+            .dark-mode-toggle {
+                top: 15px;
+                right: 15px;
+                width: 45px;
+                height: 45px;
             }
         }
 
@@ -187,10 +233,12 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Vansh Deshwal</h1>
-        <p>Resume</p>
-    </div>
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" id="darkModeToggle" title="Toggle Dark Mode">
+        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+        </svg>
+    </button>
     
     <div class="content">
         <div class="pdf-container">
@@ -251,6 +299,68 @@
         const loading = document.getElementById('loading');
         const pdfContainer = document.getElementById('pdfContainer');
         const fallback = document.getElementById('pdfFallback');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+
+        // Dark mode functionality
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            
+            // Update icon
+            const icon = darkModeToggle.querySelector('svg');
+            if (isDark) {
+                icon.innerHTML = '<path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>';
+            } else {
+                icon.innerHTML = '<path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>';
+            }
+
+            // Notify parent window if embedded in iframe (for future portfolio integration)
+            if (window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'resume-theme-change',
+                    theme: isDark ? 'dark' : 'light'
+                }, '*');
+            }
+        }
+
+        // Initialize dark mode from localStorage or system preference
+        function initializeDarkMode() {
+            const savedTheme = localStorage.getItem('darkMode');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            // Check for URL parameter (for portfolio integration)
+            const urlParams = new URLSearchParams(window.location.search);
+            const themeParam = urlParams.get('theme');
+            
+            let shouldBeDark = false;
+            if (themeParam) {
+                shouldBeDark = themeParam === 'dark';
+            } else if (savedTheme !== null) {
+                shouldBeDark = savedTheme === 'true';
+            } else {
+                shouldBeDark = prefersDark;
+            }
+
+            if (shouldBeDark) {
+                document.body.classList.add('dark-mode');
+                const icon = darkModeToggle.querySelector('svg');
+                icon.innerHTML = '<path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>';
+            }
+        }
+
+        // Listen for theme changes from parent window (for portfolio integration)
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'set-theme') {
+                const isDark = event.data.theme === 'dark';
+                if (isDark) {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+                toggleDarkMode(); // This will update the icon and localStorage
+            }
+        });
 
         function showLoading() {
             loading.style.display = 'flex';
@@ -314,6 +424,9 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            initializeDarkMode();
+            darkModeToggle.addEventListener('click', toggleDarkMode);
+            
             showLoading();
             
             // Try to load PDF with PDF.js
@@ -328,6 +441,16 @@
             if (pdfContainer.style.display === 'block') {
                 // Reload PDF with new scale on resize
                 setTimeout(loadPDF, 300);
+            }
+        });
+
+        // Notify parent window when resume is ready (for portfolio integration)
+        window.addEventListener('load', function() {
+            if (window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'resume-ready',
+                    url: window.location.href
+                }, '*');
             }
         });
     </script>
