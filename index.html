@@ -13,7 +13,9 @@
             script.onload = function() {
                 console.log('Fallback PDF.js loaded');
                 if (typeof pdfjsLib !== 'undefined') {
+                    // Use the matching worker for the fallback version
                     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    console.log('Fallback worker set to cdnjs');
                 }
             };
             script.onerror = function() {
@@ -22,14 +24,15 @@
             document.head.appendChild(script);
         }
     </script>
-    <script src="https://unpkg.com/pdfjs-dist@4.0.379/build/pdf.min.js" onerror="loadPDFJSFallback()"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" onerror="loadPDFJSFallback()"></script>
     <script>
         // Ensure PDF.js is loaded before proceeding
         window.addEventListener('load', function() {
             // Set up PDF.js worker after the library loads
             if (typeof pdfjsLib !== 'undefined') {
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.0.379/build/pdf.worker.min.js';
-                console.log('PDF.js loaded successfully');
+                // Use consistent cdnjs worker
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                console.log('PDF.js loaded successfully with cdnjs worker');
             } else {
                 console.error('PDF.js failed to load');
             }
@@ -687,12 +690,29 @@
         }
 
         // Initialize
+        function setupPDFWorker() {
+            if (typeof pdfjsLib !== 'undefined') {
+                // Use consistent cdnjs worker
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                console.log('Using cdnjs worker');
+                return true;
+            }
+            return false;
+        }
+
         function initializeApp() {
             console.log('Initializing app');
             console.log('PDF.js available:', typeof pdfjsLib !== 'undefined');
             
             if (typeof pdfjsLib === 'undefined') {
                 console.error('PDF.js not loaded properly');
+                setTimeout(showFallback, 1000);
+                return;
+            }
+            
+            // Set up the worker
+            if (!setupPDFWorker()) {
+                console.error('Failed to setup PDF worker');
                 setTimeout(showFallback, 1000);
                 return;
             }
