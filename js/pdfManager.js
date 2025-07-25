@@ -15,9 +15,6 @@ class PDFManager {
         
         // Set up resize handler
         window.addEventListener('resize', () => this.handleResize());
-        
-        // Notify parent when ready
-        window.addEventListener('load', () => this.notifyParentReady());
     }
 
     showLoading() {
@@ -145,7 +142,7 @@ class PDFManager {
             if (text && (text.includes('http') || text.includes('www.') || (text.includes('@') && text.includes('.')))) {
                 this.setupClickableLink(span, text);
             } else {
-                this.setupTextSelection(span);
+                this.disableTextSelection(span);
             }
         });
     }
@@ -176,11 +173,11 @@ class PDFManager {
         });
     }
 
-    setupTextSelection(span) {
-        // Enable text selection for non-links
-        span.style.userSelect = 'text';
-        span.style.webkitUserSelect = 'text';
-        span.style.pointerEvents = 'auto';
+    disableTextSelection(span) {
+        // Disable text selection for non-links
+        span.style.userSelect = 'none';
+        span.style.webkitUserSelect = 'none';
+        span.style.pointerEvents = 'none';
     }
 
     handleResize() {
@@ -195,15 +192,6 @@ class PDFManager {
                     this.loadPDF();
                 }
             }, 500);
-        }
-    }
-
-    notifyParentReady() {
-        if (window.parent !== window) {
-            window.parent.postMessage({
-                type: 'resume-ready',
-                url: window.location.href
-            }, '*');
         }
     }
 }

@@ -16,14 +16,6 @@ class DarkModeManager {
         localStorage.setItem('darkMode', isDark);
         
         this.updateIcon(isDark);
-
-        // Notify parent window if embedded in iframe (for portfolio integration)
-        if (window.parent !== window) {
-            window.parent.postMessage({
-                type: 'resume-theme-change',
-                theme: isDark ? 'dark' : 'light'
-            }, '*');
-        }
     }
 
     updateIcon(isDark) {

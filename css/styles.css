@@ -126,33 +126,12 @@ body.dark-mode {
     -webkit-text-fill-color: transparent;
 }
 
-/* Hide text content but allow selection */
-.textLayer span::selection {
-    background: rgba(0, 123, 255, 0.3);
-    color: transparent;
-    text-shadow: none;
-}
-
-.textLayer span::-moz-selection {
-    background: rgba(0, 123, 255, 0.3);
-    color: transparent;
-    text-shadow: none;
-}
-
-/* Ensure text is completely invisible */
-.textLayer span {
-    color: transparent !important;
-    background: transparent;
-    text-shadow: none;
-    -webkit-text-fill-color: transparent;
-}
-
-/* Text Selection */
+/* Text Selection Disabled */
 .textLayer span:not([data-clickable]) {
-    user-select: text;
-    -webkit-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 /* Clickable Links */
@@ -173,26 +152,70 @@ body.dark-mode {
     background: rgba(0, 100, 255, 0.2);
 }
 
-/* Dark Mode Text Selection */
-.dark-mode .textLayer span::selection {
-    background: rgba(100, 149, 237, 0.4);
-    color: transparent;
-    text-shadow: none;
-}
-
-.dark-mode .textLayer span::-moz-selection {
-    background: rgba(100, 149, 237, 0.4);
-    color: transparent;
-    text-shadow: none;
-}
-
 /* Fallback Display */
 .pdf-fallback {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     display: none;
     padding: 40px;
     text-align: center;
     background: #f8f9fa;
     color: #666;
+}
+
+.pdf-fallback .fallback-content {
+    text-align: center;
+    padding: 40px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.pdf-fallback .fallback-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 20px;
+    color: #667eea;
+}
+
+.pdf-fallback h3 {
+    margin-bottom: 15px;
+    color: #333;
+    font-size: 1.4em;
+}
+
+.pdf-fallback p {
+    margin-bottom: 25px;
+    color: #666;
+    line-height: 1.6;
+}
+
+.pdf-fallback .fallback-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.pdf-fallback .fallback-btn {
+    display: inline-block;
+    padding: 12px 24px;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.pdf-fallback .fallback-btn.primary {
+    background: #2c3e50;
+}
+
+.pdf-fallback .fallback-btn.secondary {
+    background: #667eea;
 }
 
 /* Buttons */
@@ -274,6 +297,29 @@ body.dark-mode {
 }
 
 /* Loading Spinner */
+.loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #666;
+    background: white;
+    z-index: 10;
+}
+
+.dark-mode .loading {
+    background: #1a1a1a;
+    color: #ccc;
+}
+
+.pdf-canvas-container {
+    display: none;
+}
+
 .spinner {
     border: 3px solid #f3f3f3;
     border-top: 3px solid #667eea;
