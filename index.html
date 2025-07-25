@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vansh Deshwal - Resume</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -346,7 +346,7 @@
 
     <script>
         // Set up PDF.js worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js';
 
         const loading = document.getElementById('loading');
         const pdfContainer = document.getElementById('pdfContainer');
@@ -435,7 +435,14 @@
         // Load and render PDF
         async function loadPDF() {
             try {
-                const pdf = await pdfjsLib.getDocument('VanshDeshwal_Resume.pdf').promise;
+                console.log('Starting PDF load...');
+                console.log('PDF.js version:', pdfjsLib.version);
+                
+                const loadingTask = pdfjsLib.getDocument('VanshDeshwal_Resume.pdf');
+                console.log('Loading task created');
+                
+                const pdf = await loadingTask.promise;
+                console.log('PDF loaded successfully, pages:', pdf.numPages);
                 
                 // Clear container
                 pdfContainer.innerHTML = '';
@@ -537,20 +544,139 @@
                 
                 showPDF();
             } catch (error) {
-                console.error('Error loading PDF:', error);
-                showFallback();
+                console.error('Detailed error loading PDF:', error);
+                console.error('Error message:', error.message);
+                console.error('Error stack:', error.stack);
+                
+                // Try alternative PDF loading approach
+                console.log('Trying alternative PDF loading...');
+                try {
+                    const response = await fetch('VanshDeshwal_Resume.pdf');
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch PDF: ${response.status} ${response.statusText}`);
+                    }
+                    console.log('PDF file fetched successfully');
+                    const arrayBuffer = await response.arrayBuffer();
+                    console.log('PDF converted to array buffer, size:', arrayBuffer.byteLength);
+                    
+                    const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                    console.log('PDF loaded from array buffer, pages:', pdf.numPages);
+                    
+                    // Continue with rendering...
+                    pdfContainer.innerHTML = '';
+                    
+                    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                        const page = await pdf.getPage(pageNum);
+                        
+                        const pageContainer = document.createElement('div');
+                        pageContainer.style.position = 'relative';
+                        pageContainer.style.display = 'inline-block';
+                        
+                        const devicePixelRatio = window.devicePixelRatio || 1;
+                        const baseScale = Math.min(window.innerWidth - 40, 800) / page.getViewport({ scale: 1 }).width;
+                        const scale = baseScale * Math.max(devicePixelRatio * 1.5, 3);
+                        const viewport = page.getViewport({ scale });
+                        
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        
+                        const displayWidth = viewport.width / (scale / baseScale);
+                        const displayHeight = viewport.height / (scale / baseScale);
+                        
+                        canvas.style.width = displayWidth + 'px';
+                        canvas.style.height = displayHeight + 'px';
+                        canvas.className = 'pdf-page';
+                        
+                        const renderContext = {
+                            canvasContext: context,
+                            viewport: viewport
+                        };
+                        
+                        await page.render(renderContext).promise;
+                        pageContainer.appendChild(canvas);
+                        
+                        const textLayerDiv = document.createElement('div');
+                        textLayerDiv.className = 'textLayer';
+                        textLayerDiv.style.position = 'absolute';
+                        textLayerDiv.style.left = '0';
+                        textLayerDiv.style.top = '0';
+                        textLayerDiv.style.right = '0';
+                        textLayerDiv.style.bottom = '0';
+                        textLayerDiv.style.overflow = 'hidden';
+                        textLayerDiv.style.opacity = '0.2';
+                        textLayerDiv.style.lineHeight = '1.0';
+                        
+                        const textContent = await page.getTextContent();
+                        const textLayerViewport = page.getViewport({ scale: baseScale });
+                        
+                        pdfjsLib.renderTextLayer({
+                            textContent: textContent,
+                            container: textLayerDiv,
+                            viewport: textLayerViewport,
+                            textDivs: []
+                        });
+                        
+                        pageContainer.appendChild(textLayerDiv);
+                        
+                        const annotationLayerDiv = document.createElement('div');
+                        annotationLayerDiv.className = 'annotationLayer';
+                        annotationLayerDiv.style.position = 'absolute';
+                        annotationLayerDiv.style.left = '0';
+                        annotationLayerDiv.style.top = '0';
+                        annotationLayerDiv.style.right = '0';
+                        annotationLayerDiv.style.bottom = '0';
+                        
+                        const annotations = await page.getAnnotations();
+                        const annotationLayerViewport = page.getViewport({ scale: baseScale });
+                        
+                        pdfjsLib.AnnotationLayer.render({
+                            viewport: annotationLayerViewport,
+                            div: annotationLayerDiv,
+                            annotations: annotations,
+                            page: page,
+                            linkService: {
+                                externalLinkTarget: 2,
+                                getDestinationHash: function() { return '#'; },
+                                getAnchorUrl: function(hash) { return '#' + hash; }
+                            }
+                        });
+                        
+                        pageContainer.appendChild(annotationLayerDiv);
+                        pdfContainer.appendChild(pageContainer);
+                    }
+                    
+                    showPDF();
+                } catch (fallbackError) {
+                    console.error('Fallback PDF loading also failed:', fallbackError);
+                    showFallback();
+                }
             }
         }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded');
+            console.log('PDF.js available:', typeof pdfjsLib !== 'undefined');
+            console.log('PDF.js GlobalWorkerOptions:', pdfjsLib.GlobalWorkerOptions);
+            
             initializeDarkMode();
             darkModeToggle.addEventListener('click', toggleDarkMode);
             
             showLoading();
             
+            // Check if PDF.js is loaded properly
+            if (typeof pdfjsLib === 'undefined') {
+                console.error('PDF.js not loaded properly');
+                setTimeout(showFallback, 1000);
+                return;
+            }
+            
             // Try to load PDF with PDF.js
-            loadPDF().catch(() => {
+            loadPDF().catch((error) => {
+                console.error('loadPDF failed:', error);
                 // If PDF.js fails, show fallback after a delay
                 setTimeout(showFallback, 2000);
             });
