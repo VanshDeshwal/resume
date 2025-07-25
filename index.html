@@ -96,6 +96,10 @@
             border-radius: 8px;
             max-width: 100%;
             height: auto;
+            image-rendering: crisp-edges;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: pixelated;
         }
 
         .dark-mode .pdf-page {
@@ -392,23 +396,33 @@
                 for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                     const page = await pdf.getPage(pageNum);
                     
-                    // Calculate scale to fit container width
-                    const viewport = page.getViewport({ scale: 1 });
-                    const containerWidth = Math.min(window.innerWidth - 40, 800); // Max width with padding
-                    const scale = containerWidth / viewport.width;
-                    const scaledViewport = page.getViewport({ scale });
+                    // Use high DPI scale for better quality
+                    const devicePixelRatio = window.devicePixelRatio || 1;
+                    const baseScale = Math.min(window.innerWidth - 40, 800) / page.getViewport({ scale: 1 }).width;
+                    // Use higher scale for better quality, especially when zooming
+                    const scale = baseScale * Math.max(devicePixelRatio, 2);
+                    const viewport = page.getViewport({ scale });
                     
-                    // Create canvas
+                    // Create canvas with high resolution
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
-                    canvas.height = scaledViewport.height;
-                    canvas.width = scaledViewport.width;
+                    
+                    // Set actual canvas size (high resolution)
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    // Set display size (scaled down for layout)
+                    const displayWidth = viewport.width / (scale / baseScale);
+                    const displayHeight = viewport.height / (scale / baseScale);
+                    
+                    canvas.style.width = displayWidth + 'px';
+                    canvas.style.height = displayHeight + 'px';
                     canvas.className = 'pdf-page';
                     
-                    // Render page
+                    // Render page at high resolution
                     const renderContext = {
                         canvasContext: context,
-                        viewport: scaledViewport
+                        viewport: viewport
                     };
                     
                     await page.render(renderContext).promise;
@@ -436,11 +450,24 @@
             });
         });
 
-        // Handle window resize to maintain aspect ratio
+        // Debounced resize handler to prevent constant refreshing
+        let resizeTimeout;
         window.addEventListener('resize', function() {
+            // Clear existing timeout
+            clearTimeout(resizeTimeout);
+            
+            // Only reload if the PDF is currently displayed and after user stops resizing
             if (pdfContainer.style.display === 'block') {
-                // Reload PDF with new scale on resize
-                setTimeout(loadPDF, 300);
+                resizeTimeout = setTimeout(() => {
+                    // Only reload if window width changed significantly (more than 100px)
+                    const currentWidth = window.innerWidth;
+                    const lastWidth = window.lastWidth || currentWidth;
+                    
+                    if (Math.abs(currentWidth - lastWidth) > 100) {
+                        window.lastWidth = currentWidth;
+                        loadPDF();
+                    }
+                }, 500); // Wait 500ms after user stops resizing
             }
         });
 
