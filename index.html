@@ -96,14 +96,62 @@
             border-radius: 8px;
             max-width: 100%;
             height: auto;
-            image-rendering: crisp-edges;
             image-rendering: -webkit-optimize-contrast;
             image-rendering: -moz-crisp-edges;
-            image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
 
         .dark-mode .pdf-page {
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .textLayer {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            opacity: 0;
+            line-height: 1.0;
+            pointer-events: none;
+        }
+
+        .textLayer > span {
+            color: transparent;
+            position: absolute;
+            white-space: pre;
+            cursor: text;
+            transform-origin: 0% 0%;
+        }
+
+        .annotationLayer {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        .annotationLayer section {
+            position: absolute;
+        }
+
+        .annotationLayer .linkAnnotation > a {
+            position: absolute;
+            font-size: 1em;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            color: transparent;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+        }
+
+        .annotationLayer .linkAnnotation > a:hover {
+            background: rgba(255, 255, 0, 0.2);
         }
 
         .pdf-embed {
@@ -396,11 +444,16 @@
                 for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                     const page = await pdf.getPage(pageNum);
                     
+                    // Create page container
+                    const pageContainer = document.createElement('div');
+                    pageContainer.style.position = 'relative';
+                    pageContainer.style.display = 'inline-block';
+                    
                     // Use high DPI scale for better quality
                     const devicePixelRatio = window.devicePixelRatio || 1;
                     const baseScale = Math.min(window.innerWidth - 40, 800) / page.getViewport({ scale: 1 }).width;
-                    // Use higher scale for better quality, especially when zooming
-                    const scale = baseScale * Math.max(devicePixelRatio, 2);
+                    // Use even higher scale for better quality (3x minimum)
+                    const scale = baseScale * Math.max(devicePixelRatio * 1.5, 3);
                     const viewport = page.getViewport({ scale });
                     
                     // Create canvas with high resolution
@@ -426,7 +479,60 @@
                     };
                     
                     await page.render(renderContext).promise;
-                    pdfContainer.appendChild(canvas);
+                    pageContainer.appendChild(canvas);
+                    
+                    // Add clickable links layer
+                    const textLayerDiv = document.createElement('div');
+                    textLayerDiv.className = 'textLayer';
+                    textLayerDiv.style.position = 'absolute';
+                    textLayerDiv.style.left = '0';
+                    textLayerDiv.style.top = '0';
+                    textLayerDiv.style.right = '0';
+                    textLayerDiv.style.bottom = '0';
+                    textLayerDiv.style.overflow = 'hidden';
+                    textLayerDiv.style.opacity = '0.2';
+                    textLayerDiv.style.lineHeight = '1.0';
+                    
+                    // Create text layer for selectable text and links
+                    const textContent = await page.getTextContent();
+                    const textLayerViewport = page.getViewport({ scale: baseScale });
+                    
+                    // Render text layer
+                    pdfjsLib.renderTextLayer({
+                        textContent: textContent,
+                        container: textLayerDiv,
+                        viewport: textLayerViewport,
+                        textDivs: []
+                    });
+                    
+                    pageContainer.appendChild(textLayerDiv);
+                    
+                    // Add annotation layer for links
+                    const annotationLayerDiv = document.createElement('div');
+                    annotationLayerDiv.className = 'annotationLayer';
+                    annotationLayerDiv.style.position = 'absolute';
+                    annotationLayerDiv.style.left = '0';
+                    annotationLayerDiv.style.top = '0';
+                    annotationLayerDiv.style.right = '0';
+                    annotationLayerDiv.style.bottom = '0';
+                    
+                    const annotations = await page.getAnnotations();
+                    const annotationLayerViewport = page.getViewport({ scale: baseScale });
+                    
+                    pdfjsLib.AnnotationLayer.render({
+                        viewport: annotationLayerViewport,
+                        div: annotationLayerDiv,
+                        annotations: annotations,
+                        page: page,
+                        linkService: {
+                            externalLinkTarget: 2, // Open in new tab
+                            getDestinationHash: function() { return '#'; },
+                            getAnchorUrl: function(hash) { return '#' + hash; }
+                        }
+                    });
+                    
+                    pageContainer.appendChild(annotationLayerDiv);
+                    pdfContainer.appendChild(pageContainer);
                 }
                 
                 showPDF();
