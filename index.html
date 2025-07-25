@@ -4,16 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vansh Deshwal - Resume</title>
-    <script src="https://unpkg.com/pdfjs-dist@4.0.379/build/pdf.min.js" onerror="loadPDFJSFallback()"></script>
     <script>
-        // Fallback PDF.js loading
+        // Fallback PDF.js loading - define before any script tags
         function loadPDFJSFallback() {
             console.log('Primary PDF.js failed, trying fallback...');
             const script = document.createElement('script');
             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
             script.onload = function() {
                 console.log('Fallback PDF.js loaded');
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                if (typeof pdfjsLib !== 'undefined') {
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                }
             };
             script.onerror = function() {
                 console.error('Both PDF.js sources failed to load');
@@ -21,6 +22,7 @@
             document.head.appendChild(script);
         }
     </script>
+    <script src="https://unpkg.com/pdfjs-dist@4.0.379/build/pdf.min.js" onerror="loadPDFJSFallback()"></script>
     <script>
         // Ensure PDF.js is loaded before proceeding
         window.addEventListener('load', function() {
