@@ -1,0 +1,28 @@
+# GitHub Pages Configuration
+title: "Vansh Deshwal - Resume"
+description: "Professional resume of Vansh Deshwal"
+baseurl: ""
+url: "https://resume.vanshdeshwal.dev"
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# Exclude files from processing
+exclude:
+  - README.md
+  - .gitignore
+
+# Include files
+include:
+  - _headers
+
+# Plugins
+plugins:
+  - jekyll-sitemap
+  - jekyll-feed
+
+# SEO
+author: Vansh Deshwal
+lang: en_US
